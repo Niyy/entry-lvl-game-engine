@@ -1,0 +1,6 @@
+*.lib
+x64/*
+*.vcxproj*
+*.dll
+entry_level_engine/x64/*
+.vs/*
