@@ -14,11 +14,17 @@ const char* vertexSource = R"glsl(
     in vec3 position;    
     in vec3 color;    
 
+    uniform vec4 something_fun;
+
     out vec3 our_color;
     
     void main()
     {
-        gl_Position = vec4(position, 1.0);
+        gl_Position = vec4(
+            position.x, 
+            position.y, 
+            position.z, 
+            1.0);
         our_color = color;
     }
 )glsl";
@@ -26,12 +32,18 @@ const char* fragmentSource = R"glsl(
     #version 330 core
     
     in vec3 our_color;
+
+    uniform vec4 something_fun;
     
     out vec4 out_color;
     
     void main()
     {
-        out_color = vec4(our_color, 1.0); 
+        out_color = vec4(
+            our_color.x,
+            our_color.y,
+            our_color.z, 
+            1.0); 
     }
 )glsl";
 
@@ -45,6 +57,7 @@ int main(int argc, char* argv[])
     GLuint vao;
     GLuint ebo;
     GLuint tex;
+    GLuint something_fun;
     GLuint vertexShader;
     GLuint fragmentShader;
     GLint status;
@@ -163,14 +176,19 @@ int main(int argc, char* argv[])
 
     // both the colAttrib and posAttrib can be done with layouts and ints.
 
+    something_fun = glGetUniformLocation(shaderProgram, "something_fun");
+
     glUseProgram(shaderProgram);
 
     while (!glfwWindowShouldClose(window))
     {
-        glClearColor(1.0f, 0.0f, 0.0f, 1.0f);
+        float time = glfwGetTime();
+
+        glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
     
 //        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+        glUniform4f(something_fun, sin(time) + 0.5f, 0.0f, 0.0f, 1.0f);
         glBindVertexArray(vao);
         glDrawArrays(GL_TRIANGLES, 0, 3);
 
