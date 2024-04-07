@@ -26,17 +26,18 @@ Shader::Shader(const char* vertexPath, const char* fragmentPath)
         fShaderFile.open(fragmentPath);
         // read file's buffer contents into streams
         vShaderStream << vShaderFile.rdbuf();
-        vShaderStream << vShaderFile.rdbuf();
+        fShaderStream << fShaderFile.rdbuf();
         // close file handlers
         vShaderFile.close();
-        vShaderFile.close();
+        fShaderFile.close();
         // conver stream into string
         vertexCode = vShaderStream.str();
         fragmentCode = fShaderStream.str();
     }
     catch (std::ifstream::failure e)
     {
-        std::cout << "ERROR::SHADER::FILE_NOT_SUCCESSFULLY_READ" << std::endl;
+        std::cout << "ERROR::SHADER::FILE_NOT_SUCCESSFULLY_READ::" << e.code()
+            << "::" << e.what() << std::endl;
     }
 
     vShaderCode = vertexCode.c_str();
@@ -95,6 +96,12 @@ Shader::Shader(const char* vertexPath, const char* fragmentPath)
 void Shader::use()
 {
     glUseProgram(ID);
+}
+
+
+unsigned int Shader::getID() const
+{
+    return ID;
 }
 
 

@@ -63,7 +63,6 @@ int main(int argc, char* argv[])
     GLuint something_fun;
     GLuint vertexShader;
     GLuint fragmentShader;
-    Shader ourShader("shaders/shader.vs", "shaders/shader.fs");
     GLint status;
     GLuint shaderProgram;
     GLint posAttrib;
@@ -110,48 +109,50 @@ int main(int argc, char* argv[])
     glewExperimental = GL_TRUE;
     glewInit();
 
+    Shader ourShader("shader.vs", "shader.fs");
+
     // create and compile the vertex shader
-    vertexShader = glCreateShader(GL_VERTEX_SHADER);
-    glShaderSource(vertexShader, 1, &vertexSource, NULL);
-    glCompileShader(vertexShader);
-
-    glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &status);
-
-    if (!status)
-    {
-        glGetShaderInfoLog(vertexShader, 512, NULL, buffer);
-        printf("VERTEX_SHADER::ERROR");
-        printf(buffer);
-    }
-    
+//    vertexShader = glCreateShader(GL_VERTEX_SHADER);
+//    glShaderSource(vertexShader, 1, &vertexSource, NULL);
+//    glCompileShader(vertexShader);
+//
+//    glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &status);
+//
+//    if (!status)
+//    {
+//        glGetShaderInfoLog(vertexShader, 512, NULL, buffer);
+//        printf("VERTEX_SHADER::ERROR");
+//        printf(buffer);
+//    }
+//    
     // create and compile the fragment shader
-    status = 0;
-    fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-    glShaderSource(fragmentShader, 1, &fragmentSource, NULL);
-    glCompileShader(fragmentShader);
-
-    glGetShaderiv(fragmentShader, GL_COMPILE_STATUS, &status);
-
-    if (!status)
-    {
-        glGetShaderInfoLog(fragmentShader, 512, NULL, buffer);
-        printf("ERROR::FRAGMENT_SHADER::LINKING_FAILED");
-        printf(buffer);
-    }
-
-    // link the vertex and fragment shader into a shader program
-    status = 0;
-    shaderProgram = glCreateProgram();
-    glAttachShader(shaderProgram, vertexShader);
-    glAttachShader(shaderProgram, fragmentShader);
-    glLinkProgram(shaderProgram);
-    glGetProgramiv(shaderProgram, GL_LINK_STATUS, &status);
-
-    if(!status)
-    {
-        glGetProgramInfoLog(shaderProgram, 512, NULL, buffer);
-        printf("ERROR::SHADER_PROGRAM::LINK_FAILED");
-    }
+//    status = 0;
+//    fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
+//    glShaderSource(fragmentShader, 1, &fragmentSource, NULL);
+//    glCompileShader(fragmentShader);
+//
+//    glGetShaderiv(fragmentShader, GL_COMPILE_STATUS, &status);
+//
+//    if (!status)
+//    {
+//        glGetShaderInfoLog(fragmentShader, 512, NULL, buffer);
+//        printf("ERROR::FRAGMENT_SHADER::LINKING_FAILED");
+//        printf(buffer);
+//    }
+//
+//    // link the vertex and fragment shader into a shader program
+//    status = 0;
+//    shaderProgram = glCreateProgram();
+//    glAttachShader(shaderProgram, vertexShader);
+//    glAttachShader(shaderProgram, fragmentShader);
+//    glLinkProgram(shaderProgram);
+//    glGetProgramiv(shaderProgram, GL_LINK_STATUS, &status);
+//
+//    if(!status)
+//    {
+//        glGetProgramInfoLog(shaderProgram, 512, NULL, buffer);
+//        printf("ERROR::SHADER_PROGRAM::LINK_FAILED");
+//    }
 
     // build objects
 
@@ -168,27 +169,25 @@ int main(int argc, char* argv[])
 //    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(elements), elements,
 //        GL_STATIC_DRAW);
 
-//    posAttrib = glGetAttribLocation(shaderProgram, "position");
-//    glEnableVertexAttribArray(posAttrib);
-//    glVertexAttribPointer(posAttrib, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), 
-//        0);
-//
-//    colAttrib = glGetAttribLocation(shaderProgram, "color");
-//    glEnableVertexAttribArray(colAttrib);
-//    glVertexAttribPointer(colAttrib, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), 
-//        (void*)(3 * sizeof(float)));
+    posAttrib = glGetAttribLocation(ourShader.getID(), "position");
+    glEnableVertexAttribArray(posAttrib);
+    glVertexAttribPointer(posAttrib, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), 
+        0);
+
+    colAttrib = glGetAttribLocation(ourShader.getID(), "color");
+    glEnableVertexAttribArray(colAttrib);
+    glVertexAttribPointer(colAttrib, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), 
+        (void*)(3 * sizeof(float)));
 
     // both the colAttrib and posAttrib can be done with layouts and ints.
 
-    something_fun = glGetUniformLocation(shaderProgram, "something_fun");
-
-    glUseProgram(shaderProgram);
+//    glUseProgram(shaderProgram);
 
     while(!glfwWindowShouldClose(window))
     {
         float time = glfwGetTime();
 
-        glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+        glClearColor(1.0f, 0.0f, 0.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
     
 //        glUniform4f(something_fun, sin(time) + 0.5f, 0.0f, 0.0f, 1.0f);
@@ -205,9 +204,6 @@ int main(int argc, char* argv[])
         }
     }
 
-    glDeleteProgram(shaderProgram);
-    glDeleteShader(fragmentShader);
-    glDeleteShader(vertexShader);
     glDeleteBuffers(1, &vbo);
     glDeleteVertexArrays(1, &vao);
 

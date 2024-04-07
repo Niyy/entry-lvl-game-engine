@@ -17,6 +17,8 @@ public:
 
     // use/activate the shader
     void use();
+    // get the id so you can apply parameters
+    unsigned int getID() const;
 
     // utility uniform functions
     void setBool(const std::string& name, bool value) const;
