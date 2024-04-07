@@ -4,6 +4,9 @@
 
 #include <iostream>
 
+#include "shader.h"
+
+
 
 using std::printf;
 
@@ -60,6 +63,7 @@ int main(int argc, char* argv[])
     GLuint something_fun;
     GLuint vertexShader;
     GLuint fragmentShader;
+    Shader ourShader("shaders/shader.vs", "shaders/shader.fs");
     GLint status;
     GLuint shaderProgram;
     GLint posAttrib;
@@ -164,15 +168,15 @@ int main(int argc, char* argv[])
 //    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(elements), elements,
 //        GL_STATIC_DRAW);
 
-    posAttrib = glGetAttribLocation(shaderProgram, "position");
-    glEnableVertexAttribArray(posAttrib);
-    glVertexAttribPointer(posAttrib, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), 
-        0);
-
-    colAttrib = glGetAttribLocation(shaderProgram, "color");
-    glEnableVertexAttribArray(colAttrib);
-    glVertexAttribPointer(colAttrib, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), 
-        (void*)(3 * sizeof(float)));
+//    posAttrib = glGetAttribLocation(shaderProgram, "position");
+//    glEnableVertexAttribArray(posAttrib);
+//    glVertexAttribPointer(posAttrib, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), 
+//        0);
+//
+//    colAttrib = glGetAttribLocation(shaderProgram, "color");
+//    glEnableVertexAttribArray(colAttrib);
+//    glVertexAttribPointer(colAttrib, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), 
+//        (void*)(3 * sizeof(float)));
 
     // both the colAttrib and posAttrib can be done with layouts and ints.
 
@@ -180,16 +184,16 @@ int main(int argc, char* argv[])
 
     glUseProgram(shaderProgram);
 
-    while (!glfwWindowShouldClose(window))
+    while(!glfwWindowShouldClose(window))
     {
         float time = glfwGetTime();
 
         glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
     
-//        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-        glUniform4f(something_fun, sin(time) + 0.5f, 0.0f, 0.0f, 1.0f);
+//        glUniform4f(something_fun, sin(time) + 0.5f, 0.0f, 0.0f, 1.0f);
         glBindVertexArray(vao);
+        ourShader.use();
         glDrawArrays(GL_TRIANGLES, 0, 3);
 
         glfwSwapBuffers(window);
