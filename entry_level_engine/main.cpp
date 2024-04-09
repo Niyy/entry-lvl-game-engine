@@ -5,6 +5,7 @@
 #include <iostream>
 
 #include "shader.h"
+#include "stb_image.h"
 
 
 
@@ -56,9 +57,7 @@ int main(int argc, char* argv[])
     char buffer[512];
     GLFWwindow* window;
     GLuint vertexBuffer;
-    GLuint vbo;
-    GLuint vao;
-    GLuint ebo;
+    GLuint vbo, vao, ebo;
     GLuint tex;
     GLuint something_fun;
     GLuint vertexShader;
@@ -67,24 +66,28 @@ int main(int argc, char* argv[])
     GLuint shaderProgram;
     GLint posAttrib;
     GLint colAttrib;
+    GLint width, height, nrChannels;
+    unsigned char* data;
+    unsigned int texture;
     GLfloat vertices[] =
-    {
-        0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 0.0f,
-        -0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 0.0f,
-        0.0f, 0.5f, 0.0f, 0.0f, 0.0f, 1.0f//,
-//        -0.5f, -0.5f, 1.0f, 1.0f, 1.0f
+    {   // positions        // colors           // texture coords
+        0.5f, 0.5f, 0.0f,  1.0f, 0.0f, 0.0f,    1.0f, 1.0f,
+        0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 0.0f,    1.0f, 0.0f,
+        -0.5f, -0.5f, 0.0f, 0.0f, 0.0f, 1.0f,   0.0f, 0.0f,
+        -0.5f, 0.5f, 0.0f,  1.0f, 1.0f, 0.0f,   0.0f, 1.0f,
     };
-    GLuint elements[] =
+    GLuint indices[] =
     {
-        0, 1, 2,
-        2, 3, 0
+        0, 1, 3,
+        1, 2, 3
     };
-    float color[] = { 1.0f, 0.0f, 0.0f, 1.0f };
-    float pixels[] =
+    GLfloat texCoords[] =
     {
-        0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f,
-        1.0f, 1.0f, 1.0f, 0.0f, 0.0f, 0.0f
+        0.0f, 0.0f,
+        1.0f, 0.0f,
+        0.5f, 1.0f
     };
+    GLfloat borderColor[] = { 1.0f, 1.0f, 0.0f, 1.0f };
 
     glfwInit();
 
@@ -109,91 +112,83 @@ int main(int argc, char* argv[])
     glewExperimental = GL_TRUE;
     glewInit();
 
-    Shader ourShader("shader.vs", "shader.fs");
-
-    // create and compile the vertex shader
-//    vertexShader = glCreateShader(GL_VERTEX_SHADER);
-//    glShaderSource(vertexShader, 1, &vertexSource, NULL);
-//    glCompileShader(vertexShader);
-//
-//    glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &status);
-//
-//    if (!status)
-//    {
-//        glGetShaderInfoLog(vertexShader, 512, NULL, buffer);
-//        printf("VERTEX_SHADER::ERROR");
-//        printf(buffer);
-//    }
-//    
-    // create and compile the fragment shader
-//    status = 0;
-//    fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-//    glShaderSource(fragmentShader, 1, &fragmentSource, NULL);
-//    glCompileShader(fragmentShader);
-//
-//    glGetShaderiv(fragmentShader, GL_COMPILE_STATUS, &status);
-//
-//    if (!status)
-//    {
-//        glGetShaderInfoLog(fragmentShader, 512, NULL, buffer);
-//        printf("ERROR::FRAGMENT_SHADER::LINKING_FAILED");
-//        printf(buffer);
-//    }
-//
-//    // link the vertex and fragment shader into a shader program
-//    status = 0;
-//    shaderProgram = glCreateProgram();
-//    glAttachShader(shaderProgram, vertexShader);
-//    glAttachShader(shaderProgram, fragmentShader);
-//    glLinkProgram(shaderProgram);
-//    glGetProgramiv(shaderProgram, GL_LINK_STATUS, &status);
-//
-//    if(!status)
-//    {
-//        glGetProgramInfoLog(shaderProgram, 512, NULL, buffer);
-//        printf("ERROR::SHADER_PROGRAM::LINK_FAILED");
-//    }
+    Shader ourShader("shader.0.1.vs", "shader.0.1.fs");
 
     // build objects
 
     glGenVertexArrays(1, &vao);
     glGenBuffers(1, &vbo);
+    glGenBuffers(1, &ebo);
 
     // create a vertex buffer object and copy the vertex data to it
     glBindVertexArray(vao);
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
 
-//    glGenBuffers(1, &ebo);
-//    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
-//    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(elements), elements,
-//        GL_STATIC_DRAW);
-
-    posAttrib = glGetAttribLocation(ourShader.getID(), "position");
-    glEnableVertexAttribArray(posAttrib);
-    glVertexAttribPointer(posAttrib, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), 
+    // build functionality into the shader class
+//    posAttrib = glGetAttribLocation(ourShader.getID(), "position");
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), 
         0);
 
-    colAttrib = glGetAttribLocation(ourShader.getID(), "color");
-    glEnableVertexAttribArray(colAttrib);
-    glVertexAttribPointer(colAttrib, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), 
+//    colAttrib = glGetAttribLocation(ourShader.getID(), "color");
+    glEnableVertexAttribArray(1);
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), 
         (void*)(3 * sizeof(float)));
 
-    // both the colAttrib and posAttrib can be done with layouts and ints.
+    glEnableVertexAttribArray(2);
+    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), 
+        (void*)(6 * sizeof(float)));
 
-//    glUseProgram(shaderProgram);
+    // mipmap filtering
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, 
+        GL_LINEAR_MIPMAP_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, 
+        GL_LINEAR);
+
+    // generate the texture
+    glGenTextures(1, &texture);
+    glBindTexture(GL_TEXTURE_2D, texture);
+
+    // texture wrapping
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_MIRRORED_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_MIRRORED_REPEAT);
+//    glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor);
+
+    // filtering methods (what pixel color to choose)
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, 
+        GL_LINEAR_MIPMAP_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+    // load texture
+    data = stbi_load("container.jpg", &width, &height, &nrChannels, 0);
+
+    if (data)
+    {
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB,
+            GL_UNSIGNED_BYTE, data);
+        glGenerateMipmap(GL_TEXTURE_2D);
+    }
+    else
+    {
+        std::cout << "Failed to load texture" << std::endl;
+    }
+
+    stbi_image_free(data);
 
     while(!glfwWindowShouldClose(window))
     {
         float time = glfwGetTime();
 
-        glClearColor(1.0f, 0.0f, 0.0f, 1.0f);
+        glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
     
-//        glUniform4f(something_fun, sin(time) + 0.5f, 0.0f, 0.0f, 1.0f);
-        glBindVertexArray(vao);
         ourShader.use();
-        glDrawArrays(GL_TRIANGLES, 0, 3);
+        glBindVertexArray(vao);
+        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+//        glDrawArrays(GL_TRIANGLES, 0, 3);
 
         glfwSwapBuffers(window);
         glfwPollEvents();
@@ -205,6 +200,7 @@ int main(int argc, char* argv[])
     }
 
     glDeleteBuffers(1, &vbo);
+    glDeleteBuffers(1, &ebo);
     glDeleteVertexArrays(1, &vao);
 
     glfwTerminate();
